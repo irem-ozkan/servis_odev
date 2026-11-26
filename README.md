@@ -1,23 +1,34 @@
-# ROS 2 – RectangleArea Servisi
+# ROS 2 - Dikdörtgen Alan Hesaplama Servisi
 
 ## 1. Projenin Amacı
 
-ROS 2 kullanılarak dikdörtgenin alanını hesaplayan bir servis geliştirilmiştir. Sunucu ve istemci arasındaki iletişim özel bir servis arayüzü üzerinden sağlanmıştır.
+Bu projede ROS 2 kullanılarak dikdörtgenin alanını hesaplayan bir servis geliştirilmiştir. İstemciden alınan genişlik ve yükseklik değerleri sunucuya gönderilerek alan hesaplaması gerçekleştirilmektedir.
 
 ## 2. Kullanılan Teknolojiler
 
 - Ubuntu
 - ROS 2
-- Python (rclpy)
+- Python
+- rclpy
+- ament_cmake
+- ament_python
 
-## 3. Paketler ve Çalışma Mantığı
+## 3. ROS 2 Paketlerinin Oluşturulması
 
-- **alan_interfaces:** `RectangleArea.srv` dosyasında genişlik (`width`), yükseklik (`height`) ve alan (`area`) değerleri `float64` olarak tanımlanmıştır. Yanıta bonus kapsamında `bool success` alanı eklenmiştir.
-- **alan_py:** `server.py` dosyasında genişlik ve yükseklik çarpılarak alan hesaplanmaktadır. `client.py` dosyasında komut satırından alınan iki sayı sunucuya gönderilmekte ve sonuç görüntülenmektedir.
+Proje kapsamında iki ayrı ROS 2 paketi oluşturulmuştur.
 
-## 4. Derleme ve Çalıştırma
+- alan_interfaces: RectangleArea servis arayüzünün bulunduğu pakettir.
+- alan_py: Sunucu ve istemci kodlarının bulunduğu pakettir.
 
-Paketler ROS 2 çalışma alanının `src` klasörüne yerleştirildikten sonra aşağıdaki komutlarla derlenir:
+Servis arayüzünde genişlik, yükseklik ve alan değerleri float64 olarak tanımlanmıştır. Bonus kapsamında bool türünde success alanı eklenmiştir.
+
+## 4. Sunucu ve İstemcinin Çalışma Mantığı
+
+Sunucu (server.py), istemciden gelen genişlik ve yükseklik değerlerini çarparak dikdörtgenin alanını hesaplamaktadır.
+
+İstemci (client.py), komut satırından alınan iki sayıyı sunucuya göndermekte ve hesaplanan alanı terminalde görüntülemektedir.
+
+## 5. Paketlerin Derlenmesi
 
 ```bash
 cd ~/ros2_ws
@@ -25,57 +36,46 @@ colcon build --packages-select alan_interfaces alan_py
 source install/setup.bash
 ```
 
-![Derleme ve arayüz kontrolü](ekran_goruntuleri/01_derleme_arayuz.png)
+![Paketlerin derlenmesi](ekran_goruntuleri/01_derleme_arayuz.png)
 
-**Şekil 1.** Her iki paket başarıyla derlenmiş, servis arayüzü ve çalıştırılabilir düğümler kontrol edilmiştir.
+**Şekil 1.** Oluşturulan iki ROS 2 paketi başarıyla derlenmiştir. Servis arayüzü ve çalıştırılabilir dosyalar kontrol edilmiştir.
 
-Birinci terminalde sunucu çalıştırılır:
+## 6. Sunucu ve İstemcinin Çalıştırılması
+
+Birinci terminalde sunucu çalıştırılmıştır.
 
 ```bash
+source ~/ros2_ws/install/setup.bash
 ros2 run alan_py server
 ```
 
-İkinci terminalde istemci çalıştırılır:
+İkinci terminalde istemci çalıştırılmıştır.
 
 ```bash
-cd ~/ros2_ws
-source install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 run alan_py client 5 4
 ```
 
 ![Sunucu ve istemci testi](ekran_goruntuleri/02_server_client.png)
 
-**Şekil 2.** Sunucu ve istemci ayrı terminallerde çalıştırılmıştır. Tam sayı ve ondalıklı değerlerle yapılan testlerde alanın doğru hesaplandığı görülmektedir.
+**Şekil 2.** Sunucu ve istemci ayrı terminallerde çalıştırılmıştır. Tam sayı ve ondalıklı değerlerle yapılan alan hesaplamalarında doğru sonuçlar elde edilmiştir.
 
-## 5. Servisin Doğrulanması
+## 7. Servisin Doğrulanması
 
-Sunucu çalışırken servis doğrudan terminal üzerinden çağrılmıştır:
-
-```bash
-ros2 service call /rectangle_area alan_interfaces/srv/RectangleArea "{width: 6.0, height: 3.0}"
-```
-
-Servis çağrısının çıktısı:
-
-```text
-requester: making request: alan_interfaces.srv.RectangleArea_Request(width=6.0, height=3.0)
-
-response:
-alan_interfaces.srv.RectangleArea_Response(area=18.0, success=True)
-```
+Servisin çalışması ros2 service call komutu ile doğrulanmıştır. Kullanılan komutlar ve elde edilen çıktılar aşağıdaki ekran görüntüsünde gösterilmiştir.
 
 ![Servis doğrulama testi](ekran_goruntuleri/03_servis_testi.png)
 
-**Şekil 3.** Servisin aktif olduğu ve doğru arayüzü kullandığı doğrulanmıştır. Doğrudan servis çağrısında alan 18.0 olarak hesaplanmıştır.
+**Şekil 3.** Servisin aktif olduğu ve servis tipinin doğru tanımlandığı kontrol edilmiştir. Doğrudan servis çağrısı başarıyla gerçekleştirilmiştir.
 
-## 6. Negatif Değer Kontrolü (Bonus)
+## 8. Negatif Değer Kontrolü (Bonus)
 
-Genişlik veya yükseklik negatif olduğunda isteğin reddedilmesi ve `success` değerinin `False` olarak döndürülmesi sağlanmıştır.
+Bonus kapsamında negatif genişlik ve yükseklik değerlerinin kabul edilmemesi sağlanmıştır. İşlemin başarı durumu success alanı üzerinden kontrol edilmiştir.
 
 ![Negatif değer testi](ekran_goruntuleri/04_negatif_deger_testi.png)
 
-**Şekil 4.** Negatif değerler hem istemci hem de doğrudan servis çağrısı üzerinden test edilmiştir. Geçersiz isteklerin reddedildiği görülmektedir.
+**Şekil 4.** Negatif değerler hem istemci hem de doğrudan servis çağrısı üzerinden test edilmiştir. Geçersiz değerlerin reddedildiği görülmektedir.
 
-## 7. Sonuç
+## 9. Sonuç
 
-Dikdörtgen alan hesaplama servisi başarıyla geliştirilmiş, sunucu ve istemci arasındaki iletişim doğrulanmıştır. Negatif değer kontrolü de başarıyla gerçekleştirilmiştir.
+ROS 2 kullanılarak dikdörtgen alan hesaplama servisi başarıyla geliştirilmiştir. Sunucu ve istemci arasındaki iletişim, servis çağrıları ve negatif değer kontrolü yapılan testlerle doğrulanmıştır.
